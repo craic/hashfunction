@@ -1,0 +1,86 @@
+Readme file for the Ruby 'hashfunction' library.
+
+This library is a Ruby wrapper around Bob Jenkins lookup3.c set of hashing functions
+    http://burtleburtle.net/bob/c/lookup3.c
+
+It is distributed under the MIT Open source license.
+
+
+The two functions that are implemented are:
+
+hashlittle   - returns one 32 bit hash value per key
+
+hashlittle2  - returns two 32 bit hash values per key
+
+hashlittle2 can be combined with the technique of Enhanced Double Hashing of Dillinger and
+Manolios to quickly generate several keys from a single hash function call.
+
+For more information on EDH see:
+Dillinger, Peter C.; Manolios, Panagiotis (2004b), "Bloom Filters in Probabilistic Verification", 
+Proceedings of the 5th Internation Conference on Formal Methods in Computer-Aided Design, 
+Springer-Verlag, Lecture Notes in Computer Science 3312
+http://www.cc.gatech.edu/fac/Pete.Manolios/research/bloom-filters-verification.html
+
+
+You can run an example application in the app directory
+
+$ ./hashfunction_example.rb
+
+This will generate a series of 32 bit hash values from hashlittle, followed by a set 
+of 2x the values from hashlittle2. Finally it will generate a set of 12 hash values from a
+single key and a single library call using EDH
+
+Things to note:
+
+- The hash functions take initial values (initvals). The returned value will vary according
+  to the initval. Typically you choose an arbitrary value and stick with it.
+
+- The C functions generate 32 bit unsigned integer keys. Ruby, however, treats Fixnum integers
+  as having only *31* bits. If given a value with 32 or more bits Ruby will represent this
+  as a Bignum. This happens transparently and is not an issue but if you want to use
+  bit shifting or other low level operations on the hash values then you need to be
+  very aware of the Ruby convention.
+
+
+There are other hash functions in the Bob Jenkins' various libraries. I have only written wrappers
+for the ones that I am interested in. If you want a Ruby wrapper for any others either use
+this code as a starting point or drop me an email and I may be able to write them and
+add them to this library.
+
+If you want to understand how the hash functions really work then do not ask me. They
+are black boxes that I am only too happy to leave to experts in the field!
+
+
+To recompile the library, go to the lib directory and run:
+
+$ ruby extconf.rb
+$ make
+
+You should see something like this:
+
+$ ruby extconf.rb
+creating Makefile
+
+$ make
+gcc -I. -I/usr/local/lib/ruby/1.8/i686-darwin9.5.1 -I/usr/local/lib/ruby/1.8/i686-darwin9.5.1 -I. -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -fno-common -D_XOPEN_SOURCE=1  -fno-common -pipe -fno-common   -c hashfunction.c
+gcc -I. -I/usr/local/lib/ruby/1.8/i686-darwin9.5.1 -I/usr/local/lib/ruby/1.8/i686-darwin9.5.1 -I. -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -fno-common -D_XOPEN_SOURCE=1  -fno-common -pipe -fno-common   -c lookup3.c
+cc -dynamic -bundle -undefined suppress -flat_namespace -o hashfunction.bundle hashfunction.o lookup3.o -L. -L/usr/local/lib -L.     -lruby  -lpthread -ldl -lobjc  
+
+
+To test the library, go to the test library and run:
+
+$ ruby test_hashfunction.rb
+
+You should see something like this:
+
+$ ruby test_hashfunction.rb
+Loaded suite test_hashfunction
+Started
+........
+Finished in 0.005994 seconds.
+
+8 tests, 14 assertions, 0 failures, 0 errors
+
+These tests correspond to the 'driver5' set of test in the lookup3.c code. I didn't see much
+point in implementing the other tests.
+
